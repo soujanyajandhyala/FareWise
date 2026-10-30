@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FareWise — Price Trends</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink: #0f1117; --ink-soft: #4b5263; --ink-muted: #8a93a6;
+      --page: #f5f6fa; --surface: #ffffff; --border: #e2e5ef;
+      --accent: #3b6ef0; --accent-hover: #2a5cd6; --accent-bg: #eef2fd;
+      --success: #1aab6d; --success-bg: #edfbf5;
+      --radius: 12px; --shadow: 0 2px 16px rgba(0,0,0,0.07);
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--page); color: var(--ink); min-height: 100vh; }
+    nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 10; }
+    .logo { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 800; color: var(--accent); text-decoration: none; }
+    .logo span { opacity: .45; color: var(--ink); }
+    .nav-links { display: flex; gap: .5rem; }
+    .nav-link { font-size: 13px; font-weight: 500; padding: 6px 12px; border-radius: 8px; text-decoration: none; color: var(--ink-soft); transition: background .15s; }
+    .nav-link:hover { background: var(--page); }
+    .nav-link.active { background: var(--accent-bg); color: var(--accent); }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .logout-btn { font-size: 13px; color: var(--ink-muted); background: none; border: none; cursor: pointer; }
+    .page { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+    h1 { font-family: 'Sora', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: .3rem; }
+    .page-sub { font-size: 14px; color: var(--ink-muted); margin-bottom: 2rem; }
+    .card { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); padding: 1.5rem; box-shadow: var(--shadow); margin-bottom: 1.5rem; }
+    .search-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: .75rem; align-items: end; }
+    .field label { display: block; font-size: 12px; font-weight: 500; color: var(--ink-soft); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .05em; }
+    .field input, .field select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; font-family: 'Inter', sans-serif; color: var(--ink); outline: none; }
+    .field input:focus, .field select:focus { border-color: var(--accent); }
+    .btn-primary { padding: 10px 20px; border-radius: var(--radius); border: none; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; background: var(--accent); color: #fff; white-space: nowrap; transition: background .15s; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); padding: 1rem; }
+    .stat-label { font-size: 12px; color: var(--ink-muted); font-weight: 500; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .4rem; }
+    .stat-val { font-size: 22px; font-weight: 700; color: var(--ink); }
+    .stat-val.green { color: var(--success); }
+    .stat-val.accent { color: var(--accent); }
+    .insight-box { background: #f0f4ff; border: 1px solid #c7d4fa; border-radius: var(--radius); padding: .85rem 1rem; font-size: 13px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 1.25rem; }
+    .chart-wrap { position: relative; height: 300px; }
+    .loading { text-align: center; padding: 3rem; color: var(--ink-muted); font-size: 14px; }
+    .spin { display: inline-block; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty { text-align: center; padding: 2rem; color: var(--ink-muted); font-size: 14px; }
+    .bar-label { display: flex; justify-content: space-between; align-items: center; font-size: 13px; border-bottom: 1px solid var(--border); padding: .5rem 0; }
+    .bar-label:last-child { border-bottom: none; }
+    .bar-day { font-weight: 500; min-width: 110px; }
+    .bar-op { color: var(--ink-muted); font-size: 12px; flex: 1; padding: 0 .75rem; }
+    .bar-price { font-weight: 600; color: var(--accent); }
+    .bar-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 99px; background: var(--success-bg); color: var(--success); margin-left: .5rem; }
+    @media (max-width: 620px) { .search-row { grid-template-columns: 1fr 1fr; } .stats-grid { grid-template-columns: repeat(2,1fr); } }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="logo" href="dashboard.html">Fare<span>Wise</span></a>
+    <div class="nav-right">
+      <div class="nav-links">
+        <a class="nav-link" href="dashboard.html">Search</a>
+        <a class="nav-link active" href="trends.html">Price trends</a>
+      </div>
+      <button class="logout-btn" onclick="authLogout()">Sign out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <h1>Price trend chart</h1>
+    <p class="page-sub">See how fares change day by day for your route and understand the best time to book.</p>
+
+    <div class="card">
+      <div class="search-row" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr auto;">
+        <div class="field"><label>From</label><input type="text" id="from" placeholder="Hyderabad" /></div>
+        <div class="field"><label>To</label><input type="text" id="to" placeholder="Mumbai" /></div>
+        <div class="field"><label>From date</label><input type="date" id="tdate-from" /></div>
+        <div class="field"><label>To date</label><input type="date" id="tdate-to" /></div>
+        <div class="field"><label>Mode</label>
+          <select id="mode">
+            <option value="flight">✈️ Flight</option>
+            <option value="train">🚆 Train</option>
+            <option value="bus">🚌 Bus</option>
+          </select>
+        </div>
+        <button class="btn-primary" id="trendBtn" onclick="loadTrend()">Analyse</button>
+      </div>
+    </div>
+
+    <div id="output"></div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if (!authGetUser()) window.location.href = 'index.html';
+
+    // Pre-fill from URL params if coming from dashboard
+    const params = new URLSearchParams(location.search);
+    if (params.get('from')) document.getElementById('from').value = params.get('from');
+    if (params.get('to')) document.getElementById('to').value = params.get('to');
+    if (params.get('mode')) document.getElementById('mode').value = params.get('mode');
+    if (params.get('from')) document.getElementById('from').value = params.get('from');
+    if (params.get('to')) document.getElementById('to').value = params.get('to');
+    if (params.get('mode')) document.getElementById('mode').value = params.get('mode');
+    if (params.get('datefrom')) document.getElementById('tdate-from').value = params.get('datefrom');
+    if (params.get('dateto')) document.getElementById('tdate-to').value = params.get('dateto');
+    const todayStr2 = new Date().toISOString().split('T')[0];
+    const laterDate = new Date(); laterDate.setDate(laterDate.getDate()+6);
+    document.getElementById('tdate-from').value = document.getElementById('tdate-from').value || todayStr2;
+    document.getElementById('tdate-to').value = document.getElementById('tdate-to').value || laterDate.toISOString().split('T')[0];
+    if (params.get('from') && params.get('to')) setTimeout(loadTrend, 300);
+
+    let chartInst = null;
+
+    async function loadTrend() {
+      const from = document.getElementById('from').value.trim();
+      const to = document.getElementById('to').value.trim();
+      const mode = document.getElementById('mode').value;
+      if (!from || !to) { alert('Please enter origin and destination.'); return; }
+
+      const btn = document.getElementById('trendBtn');
+      btn.disabled = true;
+      document.getElementById('output').innerHTML = `<div class="loading"><span class="spin">⏳</span><br><br>Analysing price trends for ${from} → ${to}…</div>`;
+
+      const dateFromVal = document.getElementById('tdate-from').value || new Date().toISOString().split('T')[0];
+      const dateToVal = document.getElementById('tdate-to').value;
+      const fromDateObj = new Date(dateFromVal + 'T00:00:00');
+      const toDateObj = dateToVal ? new Date(dateToVal + 'T00:00:00') : new Date(fromDateObj.getTime() + 6*86400000);
+      const weekLabel = fmtDate(fromDateObj) + ' – ' + fmtDate(toDateObj);
+
+      const prompt = `You are a travel pricing analyst for Indian routes.
+
+Route: "${from}" to "${to}", mode: ${mode}, week: ${weekLabel}.
+
+Generate day-wise fare estimates for all 7 days and a pricing trend analysis.
+
+Respond ONLY in JSON (no markdown, no extra text):
+{
+  "route_valid": true,
+  "days": [
+    { "date": "Mon, 30 Jun", "price": 3450, "operator": "IndiGo", "duration": "1h 20m" }
+  ],
+  "min_price": 3200,
+  "max_price": 5600,
+  "avg_price": 4100,
+  "best_day": "Tuesday",
+  "worst_day": "Friday",
+  "trend_insight": "3-4 sentences about price patterns, weekend surges, booking tips, seasonality for this route",
+  "saving_tip": "One concrete tip to save money on this route"
+}
+If invalid route: { "route_valid": false, "reason": "..." }`;
+
+      try {
+        const raw = await callAI(prompt);
+        const data = safeParseJSON(raw);
+
+        if (!data.route_valid) {
+          document.getElementById('output').innerHTML = `<div class="empty">⚠️ ${data.reason || 'Route not valid. Try another combination.'}</div>`;
+          btn.disabled = false;
+          return;
+        }
+
+        const days = data.days || [];
+        const minPrice = data.min_price || Math.min(...days.map(d => d.price));
+        const maxPrice = data.max_price || Math.max(...days.map(d => d.price));
+        const avgPrice = data.avg_price || Math.round(days.reduce((s,d) => s+d.price, 0)/days.length);
+        const saving = maxPrice - minPrice;
+
+        let html = '';
+
+        // Stats
+        html += `<div class="stats-grid">
+          <div class="stat-card"><div class="stat-label">Cheapest day</div><div class="stat-val green">${formatINR(minPrice)}</div><div style="font-size:12px;color:var(--ink-muted);margin-top:3px;">${data.best_day || ''}</div></div>
+          <div class="stat-card"><div class="stat-label">Most expensive</div><div class="stat-val" style="color:#e04040">${formatINR(maxPrice)}</div><div style="font-size:12px;color:var(--ink-muted);margin-top:3px;">${data.worst_day || ''}</div></div>
+          <div class="stat-card"><div class="stat-label">Weekly average</div><div class="stat-val accent">${formatINR(avgPrice)}</div></div>
+          <div class="stat-card"><div class="stat-label">Potential saving</div><div class="stat-val green">${formatINR(saving)}</div><div style="font-size:12px;color:var(--ink-muted);margin-top:3px;">vs worst day</div></div>
+        </div>`;
+
+        // Insight
+        if (data.trend_insight) {
+          html += `<div class="insight-box">📈 <strong>Trend analysis:</strong> ${data.trend_insight}</div>`;
+        }
+        if (data.saving_tip) {
+          html += `<div class="insight-box" style="background:#edfbf5;border-color:#a7f0c8;color:#065f46;">💡 <strong>Saving tip:</strong> ${data.saving_tip}</div>`;
+        }
+
+        // Chart
+        html += `<div class="card"><div class="chart-wrap"><canvas id="priceChart"></canvas></div></div>`;
+
+        // Table
+        html += `<div class="card"><h3 style="margin-bottom:1rem;">Day-by-day breakdown</h3>`;
+        days.forEach(d => {
+          const isBest = d.price === minPrice;
+          html += `<div class="bar-label">
+            <span class="bar-day">${d.date}</span>
+            <span class="bar-op">${d.operator} · ${d.duration}</span>
+            <span class="bar-price">${formatINR(d.price)}${isBest ? '<span class="bar-badge">Best</span>' : ''}</span>
+          </div>`;
+        });
+        html += '</div>';
+
+        document.getElementById('output').innerHTML = html;
+
+        // Draw chart
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        if (chartInst) chartInst.destroy();
+        chartInst = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: days.map(d => d.date.split(',')[0]),
+            datasets: [{
+              label: 'Fare (₹)',
+              data: days.map(d => d.price),
+              backgroundColor: days.map(d => d.price === minPrice ? '#1aab6d' : '#3b6ef0'),
+              borderRadius: 6,
+              borderSkipped: false,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: ctx => ' ₹' + ctx.parsed.y.toLocaleString('en-IN')
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: false,
+                ticks: {
+                  callback: v => '₹' + (v/1000).toFixed(1) + 'k',
+                  font: { size: 12 }
+                },
+                grid: { color: '#f0f0f0' }
+              },
+              x: { grid: { display: false }, ticks: { font: { size: 12 } } }
+            }
+          }
+        });
+
+      } catch(e) {
+        document.getElementById('output').innerHTML = '<div class="empty">❌ Error: ' + e.message + '<br><br>Check your API key in app.js and make sure you have internet.</div>';
+        console.error(e);
+      }
+      btn.disabled = false;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FareWise — Smart Travel Finder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink: #0f1117;
+      --ink-soft: #4b5263;
+      --ink-muted: #8a93a6;
+      --page: #f5f6fa;
+      --surface: #ffffff;
+      --border: #e2e5ef;
+      --accent: #3b6ef0;
+      --accent-hover: #2a5cd6;
+      --accent-bg: #eef2fd;
+      --success: #1aab6d;
+      --danger: #e04040;
+      --radius: 12px;
+      --shadow: 0 2px 16px rgba(0,0,0,0.08);
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--page);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      max-width: 900px;
+      width: 100%;
+      background: var(--surface);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-height: 560px;
+    }
+    .hero {
+      background: linear-gradient(145deg, #1a2a6c, #3b6ef0);
+      padding: 3rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #fff;
+    }
+    .logo { font-family: 'Sora', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+    .logo span { opacity: .55; }
+    .hero-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .hero h1 { font-family: 'Sora', sans-serif; font-size: 32px; font-weight: 800; line-height: 1.2; margin-bottom: 1rem; }
+    .hero p { font-size: 15px; opacity: .75; line-height: 1.7; }
+    .pills { display: flex; flex-direction: column; gap: 10px; margin-top: 2rem; }
+    .pill { background: rgba(255,255,255,0.12); border-radius: 8px; padding: 10px 14px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+    .pill-icon { font-size: 18px; }
+    .form-side { padding: 3rem 2.5rem; display: flex; flex-direction: column; justify-content: center; }
+    .tabs { display: flex; gap: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 2rem; }
+    .tab { flex: 1; padding: 10px; font-size: 14px; font-weight: 500; border: none; background: none; cursor: pointer; color: var(--ink-soft); transition: background .15s, color .15s; }
+    .tab.active { background: var(--accent); color: #fff; }
+    .form-section { display: none; }
+    .form-section.active { display: block; }
+    h2 { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: .4rem; }
+    .form-sub { font-size: 13px; color: var(--ink-muted); margin-bottom: 1.5rem; }
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-size: 13px; font-weight: 500; color: var(--ink-soft); margin-bottom: 6px; }
+    .field input { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; font-family: 'Inter', sans-serif; color: var(--ink); outline: none; transition: border-color .15s; }
+    .field input:focus { border-color: var(--accent); }
+    .btn { width: 100%; padding: 12px; border-radius: var(--radius); border: none; font-size: 15px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; background: var(--accent); color: #fff; transition: background .15s; }
+    .btn:hover { background: var(--accent-hover); }
+    .msg { font-size: 13px; margin-top: .75rem; padding: 10px 14px; border-radius: 8px; display: none; }
+    .msg.error { background: #fef0f0; color: var(--danger); display: block; }
+    .msg.success { background: #edfbf5; color: var(--success); display: block; }
+    @media (max-width: 640px) {
+      .container { grid-template-columns: 1fr; }
+      .hero { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <div class="logo">Fare<span>Wise</span></div>
+      <div class="hero-body">
+        <h1>Your smartest travel companion</h1>
+        <p>Compare flights, trains, and buses. Find the cheapest day to travel and never miss a price drop.</p>
+        <div class="pills">
+          <div class="pill"><span class="pill-icon">✈️</span> Flights, trains &amp; buses</div>
+          <div class="pill"><span class="pill-icon">📉</span> Weekly price trend charts</div>
+          <div class="pill"><span class="pill-icon">🔔</span> Price drop alerts</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-side">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('login')">Sign in</button>
+        <button class="tab" onclick="switchTab('signup')">Create account</button>
+      </div>
+
+      <div class="form-section active" id="login">
+        <h2>Welcome back</h2>
+        <p class="form-sub">Sign in to your FareWise account</p>
+        <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="you@email.com" /></div>
+        <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="Your password" /></div>
+        <button class="btn" onclick="doLogin()">Sign in</button>
+        <div class="msg" id="login-msg"></div>
+      </div>
+
+      <div class="form-section" id="signup">
+        <h2>Get started</h2>
+        <p class="form-sub">Create your free FareWise account</p>
+        <div class="field"><label>Full name</label><input type="text" id="signup-name" placeholder="Soujanya" /></div>
+        <div class="field"><label>Email</label><input type="email" id="signup-email" placeholder="you@email.com" /></div>
+        <div class="field"><label>Password</label><input type="password" id="signup-pass" placeholder="Min 6 characters" /></div>
+        <button class="btn" onclick="doSignup()">Create account</button>
+        <div class="msg" id="signup-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if (authGetUser()) window.location.href = 'dashboard.html';
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0 && tab==='login') || (i===1 && tab==='signup')));
+      document.getElementById('login').classList.toggle('active', tab==='login');
+      document.getElementById('signup').classList.toggle('active', tab==='signup');
+    }
+
+    function showMsg(id, text, type) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'msg ' + type;
+    }
+
+    function doLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const pass = document.getElementById('login-pass').value;
+      const result = authLogin(email, pass);
+      if (result.ok) { window.location.href = 'dashboard.html'; }
+      else showMsg('login-msg', result.error, 'error');
+    }
+
+    function doSignup() {
+      const name = document.getElementById('signup-name').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
+      const pass = document.getElementById('signup-pass').value;
+      if (!name) return showMsg('signup-msg', 'Please enter your name.', 'error');
+      if (!email) return showMsg('signup-msg', 'Please enter your email.', 'error');
+      if (pass.length < 6) return showMsg('signup-msg', 'Password must be at least 6 characters.', 'error');
+      const result = authSignup(name, email, pass);
+      if (result.ok) { showMsg('signup-msg', 'Account created! Signing you in…', 'success'); setTimeout(() => window.location.href = 'dashboard.html', 800); }
+      else showMsg('signup-msg', result.error, 'error');
+    }
+  </script>
+</body>
+</html>

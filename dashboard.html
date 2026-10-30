@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FareWise — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink: #0f1117; --ink-soft: #4b5263; --ink-muted: #8a93a6;
+      --page: #f5f6fa; --surface: #ffffff; --border: #e2e5ef;
+      --accent: #3b6ef0; --accent-hover: #2a5cd6; --accent-bg: #eef2fd;
+      --success: #1aab6d; --success-bg: #edfbf5;
+      --warning: #d97706; --warning-bg: #fffbeb;
+      --danger: #e04040; --radius: 12px;
+      --shadow: 0 2px 16px rgba(0,0,0,0.07);
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--page); color: var(--ink); min-height: 100vh; }
+
+    /* NAV */
+    nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 10; }
+    .logo { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 800; color: var(--accent); text-decoration: none; }
+    .logo span { opacity: .45; color: var(--ink); }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .nav-user { font-size: 14px; color: var(--ink-soft); }
+    .nav-links { display: flex; gap: .5rem; }
+    .nav-link { font-size: 13px; font-weight: 500; padding: 6px 12px; border-radius: 8px; text-decoration: none; color: var(--ink-soft); transition: background .15s; }
+    .nav-link:hover { background: var(--page); }
+    .nav-link.active { background: var(--accent-bg); color: var(--accent); }
+    .logout-btn { font-size: 13px; color: var(--ink-muted); background: none; border: none; cursor: pointer; padding: 6px; }
+
+    /* LAYOUT */
+    .page { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .two-col { display: grid; grid-template-columns: 360px 1fr; gap: 1.5rem; align-items: start; }
+
+    /* CARDS */
+    .card { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); padding: 1.5rem; box-shadow: var(--shadow); }
+    h2 { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 1.25rem; }
+    h3 { font-size: 15px; font-weight: 600; margin-bottom: .75rem; }
+
+    /* FORM */
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-size: 12px; font-weight: 500; color: var(--ink-soft); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .05em; }
+    .field input, .field select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; font-family: 'Inter', sans-serif; color: var(--ink); outline: none; background: var(--surface); }
+    .field input:focus, .field select:focus { border-color: var(--accent); }
+    .mode-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1rem; }
+    .mode-btn { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 6px; text-align: center; cursor: pointer; background: var(--surface); transition: all .15s; }
+    .mode-btn.active { border: 2px solid var(--accent); background: var(--accent-bg); }
+    .mode-icon { font-size: 20px; display: block; margin-bottom: 3px; }
+    .mode-label { font-size: 12px; font-weight: 500; color: var(--ink-soft); }
+    .mode-btn.active .mode-label { color: var(--accent); }
+    .btn-primary { width: 100%; padding: 11px; border-radius: var(--radius); border: none; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; background: var(--accent); color: #fff; transition: background .15s; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-sm { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 12px; font-weight: 500; cursor: pointer; background: var(--surface); color: var(--ink-soft); font-family: 'Inter', sans-serif; transition: background .15s; }
+    .btn-sm:hover { background: var(--page); }
+    .btn-danger-sm { border-color: #f5c0c0; color: var(--danger); }
+    .btn-danger-sm:hover { background: #fef0f0; }
+
+    /* RESULTS */
+    .result-item { border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: .6rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; transition: border-color .15s; }
+    .result-item:hover { border-color: #b5c4f8; }
+    .result-item.best { border: 2px solid var(--success); background: var(--success-bg); }
+    .r-date { font-size: 13px; color: var(--ink-muted); }
+    .r-name { font-size: 14px; font-weight: 600; }
+    .r-detail { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+    .r-price { font-size: 20px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+    .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 99px; background: var(--success-bg); color: var(--success); margin-bottom: 3px; }
+    .badge-warn { background: var(--warning-bg); color: var(--warning); }
+    .insight-box { background: #f0f4ff; border: 1px solid #c7d4fa; border-radius: var(--radius); padding: .85rem 1rem; font-size: 13px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 1rem; }
+    .loading { text-align: center; padding: 2.5rem 1rem; color: var(--ink-muted); font-size: 14px; }
+    .spin { display: inline-block; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty { text-align: center; padding: 2rem; color: var(--ink-muted); font-size: 13px; }
+
+    /* ALERTS PANEL */
+    .alert-item { display: flex; justify-content: space-between; align-items: center; padding: .65rem 0; border-bottom: 1px solid var(--border); font-size: 13px; gap: .5rem; }
+    .alert-item:last-child { border-bottom: none; }
+    .alert-route { font-weight: 500; }
+    .alert-meta { color: var(--ink-muted); font-size: 12px; }
+
+    /* HISTORY */
+    .hist-item { display: flex; justify-content: space-between; align-items: center; padding: .55rem 0; border-bottom: 1px solid var(--border); font-size: 13px; cursor: pointer; gap: .5rem; }
+    .hist-item:last-child { border-bottom: none; }
+    .hist-item:hover .hist-route { color: var(--accent); }
+    .hist-meta { color: var(--ink-muted); font-size: 12px; }
+
+    /* ALERT FORM */
+    .alert-form { background: var(--page); border-radius: var(--radius); padding: 1rem; margin-top: 1rem; }
+    .alert-form .field { margin-bottom: .6rem; }
+    .inline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+
+    @media (max-width: 720px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="logo" href="dashboard.html">Fare<span>Wise</span></a>
+    <div class="nav-right">
+      <div class="nav-links">
+        <a class="nav-link active" href="dashboard.html">Search</a>
+        <a class="nav-link" href="trends.html">Price trends</a>
+      </div>
+      <span class="nav-user" id="nav-user"></span>
+      <button class="logout-btn" onclick="authLogout()">Sign out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="two-col">
+
+      <!-- LEFT: Search -->
+      <div>
+        <div class="card">
+          <h2>Find cheapest fares</h2>
+          <div class="field"><label>From</label><input type="text" id="from" placeholder="Hyderabad" /></div>
+          <div class="field"><label>To</label><input type="text" id="to" placeholder="Mumbai" /></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+            <div class="field"><label>Travel from date</label><input type="date" id="tdate-from" /></div>
+            <div class="field"><label>Travel to date</label><input type="date" id="tdate-to" /></div>
+          </div>
+          <div class="field">
+            <label>Mode</label>
+            <div class="mode-grid">
+              <div class="mode-btn active" data-mode="flight" onclick="selectMode(this)"><span class="mode-icon">✈️</span><span class="mode-label">Flight</span></div>
+              <div class="mode-btn" data-mode="train" onclick="selectMode(this)"><span class="mode-icon">🚆</span><span class="mode-label">Train</span></div>
+              <div class="mode-btn" data-mode="bus" onclick="selectMode(this)"><span class="mode-icon">🚌</span><span class="mode-label">Bus</span></div>
+            </div>
+          </div>
+          <button class="btn-primary" id="searchBtn" onclick="doSearch()">Search cheapest week</button>
+        </div>
+
+        <!-- Price alert form -->
+        <div class="card" style="margin-top:1rem;">
+          <h3>🔔 Set price alert</h3>
+          <p style="font-size:13px;color:var(--ink-muted);margin-bottom:.75rem;">Get alerted when fare drops below your target price.</p>
+          <div class="alert-form">
+            <div class="inline-grid">
+              <div class="field"><label>From</label><input type="text" id="al-from" placeholder="Hyderabad" /></div>
+              <div class="field"><label>To</label><input type="text" id="al-to" placeholder="Mumbai" /></div>
+            </div>
+            <div class="inline-grid">
+              <div class="field"><label>Mode</label>
+                <select id="al-mode"><option value="flight">Flight</option><option value="train">Train</option><option value="bus">Bus</option></select>
+              </div>
+              <div class="field"><label>Target price (₹)</label><input type="number" id="al-price" placeholder="3000" /></div>
+            </div>
+            <button class="btn-primary" onclick="addAlert()" style="margin-top:.25rem;">Set alert</button>
+          </div>
+
+          <div id="alerts-list" style="margin-top:1rem;"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Results + history -->
+      <div>
+        <div class="card" id="results-card">
+          <div class="empty">Enter your route and click search to see the cheapest fares for the week.</div>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <h3>Recent searches</h3>
+          <div id="history-list"><div class="empty">No searches yet.</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    const user = authGetUser();
+    if (!user) window.location.href = 'index.html';
+    document.getElementById('nav-user').textContent = user.name;
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById('tdate-from').value = todayStr;
+    // Default to-date = 7 days later
+    const later = new Date(); later.setDate(later.getDate()+6);
+    document.getElementById('tdate-to').value = later.toISOString().split('T')[0];
+
+    let selectedMode = 'flight';
+
+    function selectMode(el) {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      selectedMode = el.dataset.mode;
+    }
+
+    // ── Alerts ────────────────────────────────────────────────────────────────
+    function renderAlerts() {
+      const alerts = getAlerts();
+      const el = document.getElementById('alerts-list');
+      if (!alerts.length) { el.innerHTML = ''; return; }
+      el.innerHTML = '<div style="font-size:12px;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;">Active alerts</div>' +
+        alerts.map(a => `
+          <div class="alert-item">
+            <div>
+              <div class="alert-route">${a.from} → ${a.to} (${a.mode})</div>
+              <div class="alert-meta">Alert when below ${formatINR(a.targetPrice)}</div>
+            </div>
+            <button class="btn-sm btn-danger-sm" onclick="removeAlert('${a.id}')">Remove</button>
+          </div>`).join('');
+    }
+
+    function addAlert() {
+      const from = document.getElementById('al-from').value.trim();
+      const to = document.getElementById('al-to').value.trim();
+      const mode = document.getElementById('al-mode').value;
+      const price = parseInt(document.getElementById('al-price').value);
+      if (!from || !to || !price) return alert('Please fill in all alert fields.');
+      saveAlert({ from, to, mode, targetPrice: price });
+      document.getElementById('al-from').value = '';
+      document.getElementById('al-to').value = '';
+      document.getElementById('al-price').value = '';
+      renderAlerts();
+    }
+
+    function removeAlert(id) {
+      deleteAlert(id);
+      renderAlerts();
+    }
+
+    // ── History ───────────────────────────────────────────────────────────────
+    function renderHistory() {
+      const hist = getHistory();
+      const el = document.getElementById('history-list');
+      if (!hist.length) { el.innerHTML = '<div class="empty">No searches yet.</div>'; return; }
+      el.innerHTML = hist.slice(0,6).map(h => `
+        <div class="hist-item" onclick="rerunSearch('${h.from}','${h.to}','${h.mode}')">
+          <div>
+            <div class="hist-route">${h.from} → ${h.to}</div>
+            <div class="hist-meta">${h.mode} · ${formatINR(h.minPrice)} cheapest</div>
+          </div>
+          <div class="hist-meta">${new Date(h.savedAt).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+        </div>`).join('');
+    }
+
+    function rerunSearch(from, to, mode) {
+      document.getElementById('from').value = from;
+      document.getElementById('to').value = to;
+      document.querySelectorAll('.mode-btn').forEach(b => { b.classList.toggle('active', b.dataset.mode === mode); });
+      selectedMode = mode;
+      doSearch();
+    }
+
+    // ── Search ────────────────────────────────────────────────────────────────
+    async function doSearch() {
+      const from = document.getElementById('from').value.trim();
+      const to = document.getElementById('to').value.trim();
+      const dateVal = document.getElementById('tdate-from').value;
+      const dateTo = document.getElementById('tdate-to').value;
+      if (!from || !to || !dateVal || !dateTo) { alert('Please fill in all search fields including dates.'); return; }
+
+      const weekDates = getWeekDates(dateVal);
+      const fromDate = new Date(dateVal + 'T00:00:00');
+      const toDate = new Date(dateTo + 'T00:00:00');
+      const weekLabel = fmtDate(fromDate) + ' – ' + fmtDate(toDate);
+      const btn = document.getElementById('searchBtn');
+      const card = document.getElementById('results-card');
+
+      btn.disabled = true;
+      card.innerHTML = `<div class="loading"><span class="spin">⏳</span><br><br>Searching ${selectedMode} fares for the week of ${weekLabel}…</div>`;
+
+      const prompt = `You are a travel fare assistant for Indian routes.
+
+Route: "${from}" to "${to}", mode: ${selectedMode}, week: ${weekLabel}.
+
+Generate realistic Indian fare estimates for each of the 7 days. Base on typical pricing patterns, day-of-week effects, and seasonal factors.
+
+Respond ONLY in JSON (no markdown, no extra text):
+{
+  "route_valid": true,
+  "options": [
+    { "date": "Mon, 30 Jun", "operator": "IndiGo / Rajdhani / KSRTC etc", "price": 3450, "duration": "1h 20m", "note": "Best deal" }
+  ],
+  "insight": "2–3 sentence booking tip for this route and week",
+  "avg_price": 4200
+}
+If route is invalid, return { "route_valid": false, "reason": "..." }`;
+
+      try {
+        const raw = await callAI(prompt);
+        const data = safeParseJSON(raw);
+
+        if (!data.route_valid) {
+          card.innerHTML = `<div class="empty">⚠️ ${data.reason || 'This route or mode doesn\'t seem valid. Try a different combination.'}</div>`;
+          btn.disabled = false;
+          return;
+        }
+
+        const options = data.options || [];
+        const minPrice = Math.min(...options.map(o => o.price));
+
+        // Check alerts
+        const triggered = checkAlerts(from, to, selectedMode, minPrice);
+
+        let html = `<h2>${from} → ${to}</h2>`;
+        html += `<p style="font-size:13px;color:var(--ink-muted);margin-bottom:1rem;">${selectedMode.charAt(0).toUpperCase()+selectedMode.slice(1)} · ${weekLabel}</p>`;
+
+        if (triggered.length) {
+          html += `<div class="insight-box" style="background:#fffbeb;border-color:#fcd34d;color:#92400e;">🔔 Price alert triggered! The cheapest fare (${formatINR(minPrice)}) is below your alert threshold for ${triggered.map(a=>a.from+'→'+a.to).join(', ')}.</div>`;
+        }
+
+        if (data.insight) {
+          html += `<div class="insight-box">💡 ${data.insight}</div>`;
+        }
+
+        options.forEach(opt => {
+          const best = opt.price === minPrice;
+          html += `<div class="result-item${best ? ' best' : ''}">
+            <div>
+              ${best ? '<div class="badge">✓ Cheapest this week</div>' : ''}
+              <div class="r-date">${opt.date}</div>
+              <div class="r-name">${opt.operator}</div>
+              <div class="r-detail">⏱ ${opt.duration}${opt.note ? ' · ' + opt.note : ''}</div>
+            </div>
+            <div class="r-price">${formatINR(opt.price)}</div>
+          </div>`;
+        });
+
+        html += `<a href="trends.html?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&mode=${selectedMode}&datefrom=${dateVal}&dateto=${dateTo}" style="display:block;text-align:center;margin-top:1rem;font-size:13px;color:var(--accent);font-weight:500;">View price trend chart →</a>`;
+
+        card.innerHTML = html;
+
+        saveSearch({ from, to, mode: selectedMode, weekLabel, minPrice, savedAt: Date.now() });
+        renderHistory();
+
+      } catch(e) {
+        card.innerHTML = '<div class="empty">❌ Error: ' + e.message + '<br><br>Check your API key in app.js and make sure you have internet.</div>';
+        console.error(e);
+      }
+      btn.disabled = false;
+    }
+
+    function checkAlerts(from, to, mode, minPrice) {
+      return getAlerts().filter(a =>
+        a.from.toLowerCase() === from.toLowerCase() &&
+        a.to.toLowerCase() === to.toLowerCase() &&
+        a.mode === mode &&
+        minPrice <= a.targetPrice
+      );
+    }
+
+    renderAlerts();
+    renderHistory();
+  </script>
+</body>
+</html>
